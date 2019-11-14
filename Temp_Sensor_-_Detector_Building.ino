@@ -9,12 +9,16 @@ TODO: Include a link to the circuit diagram
 Created By: Joaquin
 */
 
+int del = 100;
+
 float voltage = 0;
 float totalVolt = 0; // total voltage during measuring time
 float avgVolt = 0;
 float degreesC = 0;
 float totalC = 0; // total temperature during measuring time
 float avgC = 0;
+
+bool printData = false;
 
 bool takeAvg = false;
 int takeAvgTime = 0;
@@ -40,14 +44,22 @@ void loop() {
       numIn = Serial.parseInt(); 
 
       if (numIn != 0) {
-        takeAvgTime = numIn * 1000; // comvert time to take to millis
-        startTime = millis();
-        takeAvg = true;
-        totalVolt = 0;
-        avgVolt = 0;
-        totalC = 0;
-        avgC = 0;
-        tests = 0;
+          takeAvgTime = numIn * 1000; // comvert time to take to millis
+          startTime = millis();
+          takeAvg = true;
+          totalVolt = 0;
+          avgVolt = 0;
+          totalC = 0;
+          avgC = 0;
+          tests = 0;
+      }
+      
+      if (numIn == 0) {
+          if(writeData == true) {
+              writeData == false;  
+          } else {
+              writeData == true; 
+          }
       }
   }
 
@@ -65,21 +77,27 @@ void loop() {
       Serial.print(", ");
       Serial.println(avgC);
       
-      if (tests >= takeAvgTime/100) {
-        takeAvg = false;
-
-        // print average voltage over given time
-        Serial.print("Avg voltage over last ");
-        Serial.print(takeAvgTime/1000);
-        Serial.print(" Seconds: ");
-        Serial.println(avgVolt);
-
-        // print average temp over given time
-        Serial.print("Avg temperature over last ");
-        Serial.print(takeAvgTime/1000);
-        Serial.print(" Seconds: ");
-        Serial.println(avgC);
+      if (tests >= takeAvgTime/del) {
+          takeAvg = false;
+  
+          // print average voltage over given time
+          Serial.print("Avg voltage over last ");
+          Serial.print(takeAvgTime/1000);
+          Serial.print(" Seconds: ");
+          Serial.println(avgVolt);
+  
+          // print average temp over given time
+          Serial.print("Avg temperature over last ");
+          Serial.print(takeAvgTime/1000);
+          Serial.print(" Seconds: ");
+          Serial.println(avgC);
       }
+  }
+
+  if(writeData) {
+      Serial.print(voltage);
+      Serial.print(", ");
+      Serial.println(degreesC);  
   }
 
   if (degreesC >= redRange[0] && degreesC < redRange[1]) {
@@ -96,5 +114,5 @@ void loop() {
        digitalWrite(12, LOW);
   } 
 
-  delay(100);
+  delay(del);
 }
