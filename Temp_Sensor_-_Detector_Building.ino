@@ -20,6 +20,7 @@ bool takeAvg = false;
 int takeAvgTime = 0;
 int startTime = 0;
 int tests = 0; // number of times the temperature was measured and added to total
+int numIn;
 
 // temperature ranges for led lights
 float redRange[] = {0, 20};   
@@ -33,36 +34,47 @@ void setup() {
 void loop() {
   
   voltage = analogRead(A0) * 0.004882814; //convert the analog reading, which varies from 0 to 1023, back to a voltage value from 0-5 volts
-  degreesC = (voltage - 0.5) * 100; //convert the voltage to a temperature in degrees Celsius
+  degreesC = 82.6*voltage - 34.2; //convert the voltage to a temperature in degrees Celsius
 
   if (Serial.available() > 0) {
-      int numIn = Serial.parseInt(); 
+      numIn = Serial.parseInt(); 
 
       if (numIn != 0) {
         takeAvgTime = numIn * 1000; // comvert time to take to millis
         startTime = millis();
         takeAvg = true;
-        tests = 0; // reset times measured
+        totalVolt = 0;
+        avgVolt = 0;
+        totalC = 0;
+        avgC = 0;
+        tests = 0;
       }
   }
 
   if (takeAvg) {
-      totalVolt += voltage;
-      totalC += degreesC;
       tests ++;
+      totalVolt += voltage;
+      avgVolt = totalVolt/tests;
+      totalC += degreesC;
+      avgC = totalC/tests;
+
+      Serial.print("taking avg...");
+      Serial.print(tests);
+      Serial.print(": ");
+      Serial.print(avgVolt);
+      Serial.print(", ");
+      Serial.println(avgC);
       
-      if (millis >= startTime + takeAvgTime) {
+      if (tests >= takeAvgTime/100) {
         takeAvg = false;
 
-        // get and print average voltage over given time
-        avgVolt = totalVolt/tests;
+        // print average voltage over given time
         Serial.print("Avg voltage over last ");
         Serial.print(takeAvgTime/1000);
         Serial.print(" Seconds: ");
         Serial.println(avgVolt);
 
-        // get and print average temp over given time
-        avgC = totalC/tests;
+        // print average temp over given time
         Serial.print("Avg temperature over last ");
         Serial.print(takeAvgTime/1000);
         Serial.print(" Seconds: ");
@@ -83,4 +95,6 @@ void loop() {
        digitalWrite(11, LOW);
        digitalWrite(12, LOW);
   } 
+
+  delay(100);
 }
